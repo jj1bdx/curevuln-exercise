@@ -1,11 +1,12 @@
-vaersion: 1
-title: 反射型XSS
-description: 反射型XSSについて学びます
+version: 1
+title: OSコマンドインジェクション
+description: OSコマンドインジェクションの対策について学びます
 difficulty: beginner
 language: php
 tag:
     - php
-    - xss
+    - command
+    - injection
 text:
     - title: 概要
       file: text/step1.md
@@ -16,7 +17,5 @@ text:
     - title: 演習
       file: text/step4.md
 files:
-    - www/index.php
-    - www/template_index.php
-    - www/search.php
-    - www/template_search.php
+    - www/query-form.html
+    - www/query-process.php

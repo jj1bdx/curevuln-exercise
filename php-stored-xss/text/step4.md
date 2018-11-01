@@ -1,5 +1,4 @@
-### 脆弱性の悪用
-
+## 脆弱性の実習
 
 #### 脆弱なアプリケーションの起動
 
@@ -8,12 +7,20 @@
 
 #### 攻撃
 
-このアプリケーションでは商品の検索機能にXSS脆弱性が存在します．  
-検索フォームに次のようなJavaScriptを入力して検索することで，検索結果ページでそのJavaScriptコードが実行されてしまいます．
+このアプリケーションはお問い合わせフォームを表示する際にXSS脆弱性が存在します。
 
-```js
-"><script>alert(1)</script>
-```
+以下の方法で攻撃することができます。
+
+1. ログイン画面にてLoginIDを `guest`、Passwordを`guest_password`としてログインします。
+2. 「お問い合わせ一覧」の画面が出ます。ここで「問い合わせ入力はこちら」をクリックします。
+3. 「お問い合わせフォーム」が出ます。タイトルと内容の入力を求められますが、ここでタイトルにJavaScriptコード `<script>alert(1)</script>` を入力します。内容は入力せずに、「送信」ボタンをクリックします。
+4. 入力に成功した画面に遷移するので、「確認はこちらから。」をクリックします。
+5. 入力したJavaScriptコードが実行されます。これがXSS脆弱性です。
+6. AlertダイアログのOKボタンを押すと、「お問い合わせ一覧」が表示されています。ここで画面の右上のLogoutをクリックします。
+7. 再度ログイン画面にてLoginIDを `guest`、Passwordを`guest_password`としてログインします。
+8. 先程入力したJavaScriptコードが実行されます。
+9. AlertダイアログのOKボタンを押すと、「お問い合わせ一覧」が表示されます。
+
 
 ### 対策方法
 
@@ -64,20 +71,30 @@ echo htmlspecialchars($s, ENT_QUOTES, 'utf-8');
 
 ### 修正例
 
-このアプリケーションでXSS脆弱性が存在するのは，template_search.phpで検索文字列を表示している箇所です．
+このアプリケーションでXSS脆弱性が存在するのは，template_auth_index.phpで検索文字列を表示している箇所です．
 
 ```php
-<p><?php echo $name; ?>の検索結果</p>
+    <?php
+    foreach ($contacts as $key => $contact) {
+        $html   = "";
+        $html  .= "<div class='contacts'><div class='title'> <p> タイトル : ";
+        $html  .= $contact['title'];
+        $html  .= "</p></div><div class='content'> <p>";
+        $html  .= $contact['content'];
+        $html  .= "</p></div></div>";
+        echo $html;
+    }
 ```
 
 ここで，ユーザーが検索した文字列をエスケープ処理を施さずに出力しているため，以下のようなパラメータを受け取った時にXSS脆弱性が生じます．
 
 ```js
-?name=<script>alert(1)</script>
+// contentでも同様です
+?title=<script>alert(1)</script>
 ```
 
 XSS脆弱性を生じないためには，`htmlspecialchars`を使用して出力します．
 
 ```php
-<p><?php echo htmlspecialchars($name, ENT_QUOTES, 'utf-8'); ?></p>
+        $html  .= htmlspecialchars($contact['title'], ENT_QUOTES, 'utf-8');
 ```
